@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Exercise02 {
     public static class InchConverter {
-
         //定数
+
         private const double ratio = 0.3048;
 
         // メートルからフィートを求める
