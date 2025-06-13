@@ -39,7 +39,7 @@ namespace Exercise01 {
                         dict[uc] = 1;   //  未登録：valueに1を設定
                 }
             }
-            //⑥すべての文字が読み終わったら、アルファベット順に並び替えて出力
+            //⑥すべての文字が読み終わったら出力
             foreach (var item in dict) {
                 Console.WriteLine("{0}:{1}", item.Key, item.Value);
             }
