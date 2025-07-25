@@ -69,15 +69,15 @@ namespace Test02 {
         //問題５　Countメソッドを使い、小文字の'f'が含まれている都市名がいくつあるかカウントして結果を表示
         //　　　　出力結果【5】
         private static void Exercise05(List<string> cities) {
-            var count = cities.Count(c => c.Contains('f'));
+            int count = cities.Count(c => c.Contains('f'));
             Console.WriteLine(count);
-
         }
 
         //問題６　全都市数
         //　　　　出力結果【8】
         private static void Exercise06(List<string> cities) {
-            Console.WriteLine(cities.Count());
+        
+        
         }
 
     }

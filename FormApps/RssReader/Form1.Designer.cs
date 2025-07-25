@@ -23,27 +23,20 @@
         ///  the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
-            tbUrl = new TextBox();
             btRssGet = new Button();
             lbTitles = new ListBox();
             wvRssLink = new Microsoft.Web.WebView2.WinForms.WebView2();
             btGoBack = new Button();
             btGoForward = new Button();
+            cbUrl = new ComboBox();
+            btFavorite = new Button();
             ((System.ComponentModel.ISupportInitialize)wvRssLink).BeginInit();
             SuspendLayout();
-            // 
-            // tbUrl
-            // 
-            tbUrl.Font = new Font("Yu Gothic UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 128);
-            tbUrl.Location = new Point(127, 15);
-            tbUrl.Name = "tbUrl";
-            tbUrl.Size = new Size(600, 33);
-            tbUrl.TabIndex = 0;
             // 
             // btRssGet
             // 
             btRssGet.Font = new Font("Yu Gothic UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 128);
-            btRssGet.Location = new Point(733, 14);
+            btRssGet.Location = new Point(734, 15);
             btRssGet.Name = "btRssGet";
             btRssGet.Size = new Size(94, 33);
             btRssGet.TabIndex = 1;
@@ -54,18 +47,21 @@
             // lbTitles
             // 
             lbTitles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            lbTitles.DrawMode = DrawMode.OwnerDrawFixed;
             lbTitles.Font = new Font("Yu Gothic UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 128);
             lbTitles.FormattingEnabled = true;
             lbTitles.ItemHeight = 21;
             lbTitles.Location = new Point(12, 54);
             lbTitles.Name = "lbTitles";
-            lbTitles.Size = new Size(815, 172);
+            lbTitles.Size = new Size(816, 172);
             lbTitles.TabIndex = 2;
             lbTitles.Click += lbTitles_Click;
+            lbTitles.DrawItem += lbTitles_DrawItem;
             // 
             // wvRssLink
             // 
             wvRssLink.AllowExternalDrop = true;
+            wvRssLink.BackColor = Color.White;
             wvRssLink.CreationProperties = null;
             wvRssLink.DefaultBackgroundColor = Color.White;
             wvRssLink.Location = new Point(12, 232);
@@ -73,7 +69,6 @@
             wvRssLink.Size = new Size(815, 596);
             wvRssLink.TabIndex = 3;
             wvRssLink.ZoomFactor = 1D;
-            wvRssLink.NavigationCompleted += wvRssLink_NavigationCompleted;
             wvRssLink.SourceChanged += wvRssLink_SourceChanged;
             // 
             // btGoBack
@@ -96,32 +91,52 @@
             btGoForward.UseVisualStyleBackColor = true;
             btGoForward.Click += btGoForward_Click;
             // 
+            // cbUrl
+            // 
+            cbUrl.Font = new Font("Yu Gothic UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 128);
+            cbUrl.FormattingEnabled = true;
+            cbUrl.Location = new Point(127, 15);
+            cbUrl.Name = "cbUrl";
+            cbUrl.Size = new Size(543, 33);
+            cbUrl.TabIndex = 6;
+            // 
+            // btFavorite
+            // 
+            btFavorite.Location = new Point(676, 15);
+            btFavorite.Name = "btFavorite";
+            btFavorite.Size = new Size(55, 31);
+            btFavorite.TabIndex = 7;
+            btFavorite.Text = "☆";
+            btFavorite.UseVisualStyleBackColor = true;
+            btFavorite.Click += btFavorite_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(847, 840);
+            BackColor = Color.FromArgb(192, 255, 255);
+            ClientSize = new Size(840, 840);
+            Controls.Add(btFavorite);
+            Controls.Add(cbUrl);
             Controls.Add(btGoForward);
             Controls.Add(btGoBack);
             Controls.Add(wvRssLink);
             Controls.Add(lbTitles);
             Controls.Add(btRssGet);
-            Controls.Add(tbUrl);
             Name = "Form1";
             Text = "RSSリーダー";
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)wvRssLink).EndInit();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
-
-        private TextBox tbUrl;
         private Button btRssGet;
         private ListBox lbTitles;
         private Microsoft.Web.WebView2.WinForms.WebView2 wvRssLink;
         private Button btGoBack;
         private Button btGoForward;
+        private ComboBox cbUrl;
+        private Button btFavorite;
     }
 }
