@@ -19,7 +19,7 @@ namespace ColorChecker {
     /// MainWindow.xaml の相互作用ロジック
     /// </summary>
     public partial class MainWindow : Window {
-        MyColor currentColor;   //現在設定している色情報//****************************
+        MyColor currentColor;   //現在設定している色情報
 
         public MainWindow() {
             InitializeComponent();
@@ -40,21 +40,44 @@ namespace ColorChecker {
             //colorAreaの色（背景色）は、スライダーで指定したRGBの色を表示する
             var myColor = new MyColor { Color = Color.FromRgb((byte)rSlider.Value, (byte)gSlider.Value, (byte)bSlider.Value),
                 Name = string.Empty };
-            colorArea.Background = new SolidColorBrush(myColor.Color);    
+            currentColor.Color = myColor.Color;
+            currentColor.Name = ((MyColor[])DataContext).Where(c => c.Color.Equals(currentColor.Color))
+                                                                    .Select(x => x.Name).FirstOrDefault();
+            int i;
+            for ( i = 0; i < ((MyColor[])DataContext).Length; i++) {
+                if (((MyColor[])DataContext)[i].Color.Equals(currentColor.Color)) {
+                    currentColor.Name = ((MyColor[])DataContext)[i].Name;
+                    break; //色データが見つかった
+                }
+            }
+            colorSelectComboBox.SelectedIndex = i < ((MyColor[])DataContext).Length ? i : -1;
+            colorArea.Background = new SolidColorBrush(myColor.Color);
         }
 
         private void stockList_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-
+            colorArea.Background = new SolidColorBrush(((MyColor)stockList.Items[stockList.SelectedIndex]).Color);
+            setSliderValue(((MyColor)stockList.Items[stockList.SelectedIndex]).Color);
         }
 
         private void stockButton_Click(object sender, RoutedEventArgs e) {
-            stockList.Items.Insert(0, currentColor);//****************************
+
+            //既に登録されている場合は登録しない
+            if (!stockList.Items.Contains((MyColor)currentColor)) {
+                stockList.Items.Insert(0, currentColor);
+            } else {
+                MessageBox.Show("既に登録済みです！", "ColorChecker", 
+                                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         //コンボボックスから色を選択
         private void colorSelectComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            if (((ComboBox)sender).SelectedIndex == -1) return;
+
             var comboSelectMyColor = (MyColor)((ComboBox)sender).SelectedItem;
             setSliderValue(comboSelectMyColor.Color);   //スライダーを設定
+
+            currentColor.Name = comboSelectMyColor.Name;
         }
 
         //各スライダーの値を設定する
@@ -62,6 +85,10 @@ namespace ColorChecker {
             rSlider.Value = color.R;
             gSlider.Value = color.G;
             bSlider.Value = color.B;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e) {
+            colorSelectComboBox.SelectedIndex = 7;
         }
     }
 }
