@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:ConverterApp"
         mc:Ignorable="d"
         Title="ConverterApp" SizeToContent="WidthAndHeight">
+
     <StackPanel>
         <StackPanel Orientation="Horizontal">
             <TextBox Name="MetricValue" Margin="4" Width="100" />
@@ -13,8 +14,8 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Name="ImperialUnitToMetric"  Margin="4" Width="40" Content="▲" />
-            <Button Name="MetricToImperialUnit"  Margin="4" Width="40" Content="▼" />
+            <Button Name="ImperialUnitToMetric"  Margin="4" Width="40" Content="▲" Click="ImperialUnitToMetric_Click" />
+            <Button Name="MetricToImperialUnit"  Margin="4" Width="40" Content="▼" Click="MetricToImperialUnit_Click" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal">

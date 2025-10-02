@@ -21,5 +21,13 @@ namespace ConverterApp {
         public MainWindow() {
             InitializeComponent();
         }
+
+        private void ImperialUnitToMetric_Click(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void MetricToImperialUnit_Click(object sender, RoutedEventArgs e) {
+
+        }
     }
 }
