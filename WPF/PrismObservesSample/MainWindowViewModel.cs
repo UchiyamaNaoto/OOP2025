@@ -28,7 +28,7 @@ namespace PrismObservesSample {
 
         //コンストラクタ
         public MainWindowViewModel() {
-            SumCommand = new DelegateCommand(ExcuteSum, canExcuteSum)
+            SumCommand = new DelegateCommand(ExcuteSum,canExcuteSum)
                 .ObservesProperty(()=>Input1)
                 .ObservesProperty(()=>Input2);
         }
