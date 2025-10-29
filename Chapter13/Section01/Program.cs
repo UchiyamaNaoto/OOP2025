@@ -1,25 +1,20 @@
 ﻿namespace Section01 {
     internal class Program {
         static void Main(string[] args) {
-            var price = Library.Books
-                .Where(b => b.CategoryId == 1)
-                .Max(b => b.Price);
-            Console.WriteLine(price);
+            var books = Library.Books
+                            .Join(Library.Categories
+                                    , book => book.CategoryId
+                                    , Category => Category.Id,
+                                    (book, category) => new {
+                                        book.Title,
+                                        Category = category.Name,
+                                        book.PublishedYear
+                                    })
+                            .OrderBy(b => b.PublishedYear)
+                            .ThenBy(b => b.Category);
 
-            Console.WriteLine();　//改行
-
-            var book = Library.Books
-                .Where(b => b.PublishedYear >= 2021)
-                .MinBy(b => b.Price);
-            Console.WriteLine(book);
-
-            Console.WriteLine();　//改行
-
-            var average = Library.Books.Average(x => x.Price);
-            var aboves = Library.Books
-                .Where(b => b.Price > average);
-            foreach (var book1 in aboves) {
-                Console.WriteLine(book1);
+            foreach (var book in books) {
+                Console.WriteLine($"{book.Title},{book.Category},{book.PublishedYear}");
             }
         }
     }
