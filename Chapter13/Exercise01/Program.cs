@@ -35,7 +35,7 @@ namespace Exercise01 {
                             });
 
             foreach (var item in results) {
-                Console.WriteLine( $"{item.PublishedYear}:{item.Count}");
+                Console.WriteLine($"{item.PublishedYear}:{item.Count}");
             }
         }
 
@@ -50,19 +50,72 @@ namespace Exercise01 {
         }
 
         private static void Exercise1_5() {
-
+            var categoryNames = Library.Books
+                                    .Where(b => b.PublishedYear == 2022)
+                                    .Join(Library.Categories,
+                                            b => b.CategoryId,
+                                            c => c.Id,
+                                            (b, c) => c.Name)
+                                    .Distinct();
+            foreach (var name in categoryNames) {
+                Console.WriteLine(name);
+            }
         }
 
         private static void Exercise1_6() {
-
+            var gropus = Library.Books
+                        .Join(Library.Categories,
+                                b => b.CategoryId,
+                                c => c.Id,
+                                (b, c) => new {
+                                    CategoryName = c.Name,
+                                    b.Title
+                                })
+                        .GroupBy(x => x.CategoryName)
+                        .OrderBy(x => x.Key);
+            foreach (var gropu in gropus) {
+                Console.WriteLine($"# {gropu.Key}");
+                foreach (var book in gropu) {
+                    Console.WriteLine($"   {book.Title}");
+                }
+            }
         }
 
         private static void Exercise1_7() {
+            var gropus = Library.Categories
+                                .Where(x => x.Name.Equals("Development"))
+                                .Join(Library.Books,
+                                        c => c.Id,
+                                        b => b.CategoryId,
+                                        (c, b) => new {
+                                            b.Title,
+                                            b.PublishedYear
+                                        })
+                                .GroupBy(x => x.PublishedYear)
+                                .OrderBy(x => x.Key);
 
+            foreach (var gropu in gropus) {
+                Console.WriteLine($"# {gropu.Key}");
+                foreach (var book in gropu) {
+                    Console.WriteLine($"   {book.Title}");
+                }
+            }
         }
 
         private static void Exercise1_8() {
-
+            var categoryNames = Library.Categories
+                                    .GroupJoin(Library.Books,
+                                                c => c.Id,
+                                                b => b.CategoryId,
+                                                (c, books) => new {
+                                                    CategoryName = c.Name,
+                                                    Count = books.Count(),
+                                                })
+                                    .Where(x => x.Count >= 4)
+                                    .Select(x=>x.CategoryName);
+            foreach (var name in categoryNames) {
+                Console.WriteLine(name);
+            }
         }
     }
 }
