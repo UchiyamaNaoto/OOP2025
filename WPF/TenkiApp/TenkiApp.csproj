@@ -8,4 +8,12 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Images\japan_map.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\japan_map.png" />
+  </ItemGroup>
+
 </Project>
