@@ -90,6 +90,7 @@
                 <!-- 右コンテンツ -->
             </Grid.ColumnDefinitions>
 
+
             <!-- ================= 左：場所選択パネル ================= -->
             <Border Grid.Column="0"
                     Background="#33FFFFFF"
@@ -116,15 +117,15 @@
                                    FontSize="13"
                                    Margin="0,4,0,2"/>
                         <DockPanel>
-                            <TextBox x:Name="CityTextBox"
-                                     Text="伊勢崎市"
-                                     Height="28"
-                                     FontSize="13"
-                                     Padding="6,2"
-                                     Margin="0,0,4,0"/>
-                            <Button Content="検索"
-                                    Style="{StaticResource PrimaryButton}"
+                            <TextBox x:Name="CityTextBox" Text="伊勢崎市"
+                                     Height="28" FontSize="13"
+                                     Padding="6,2" Margin="0,0,4,0"/>
+                            <Button Content="検索" Style="{StaticResource PrimaryButton}"
                                     Click="SearchButton_Click"/>
+                            <Button Content="現在地"
+                                    Style="{StaticResource ChipButton}"
+                                    Click="CurrentLocationButton_Click"
+                                    Margin="4,0,0,0"/>
                         </DockPanel>
 
                         <TextBlock Text="よく使う場所"

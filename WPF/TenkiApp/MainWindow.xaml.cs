@@ -15,9 +15,15 @@ namespace TenkiApp {
             InitializeComponent();
             StartClock();
 
-            // 起動時に一度読み込み
-            _ = LoadWeatherByCityAsync("伊勢崎市");
+            // User-Agent を設定（現在地API対策）
+            if (!httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("TenkiApp/1.0")) {
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
+            }
+
+            // 起動時は現在地で取得
+            _ = LoadWeatherForCurrentLocationAsync();
         }
+
 
         // ==== 時計表示 ====
         private void StartClock() {
@@ -183,6 +189,72 @@ namespace TenkiApp {
                 _ => ("❓", $"不明（{code}）")
             };
         }
+        private async Task LoadWeatherForCurrentLocationAsync() {
+            try {
+                StatusText.Text = "現在地から天気を取得中...";
+
+                // IP から現在地（緯度・経度・都市名・タイムゾーン）を取得
+                var (lat, lon, locationName, timezone) = await GetCurrentLocationByIpAsync();
+
+                // テキストボックスにも表示（ユーザーにどこの天気か分かるように）
+                CityTextBox.Text = locationName;
+
+                // Open-Meteo から天気取得
+                var forecast = await GetForecastAsync(lat, lon, timezone);
+
+                // 既存のUI更新メソッドを再利用
+                UpdateCurrentWeatherUi(locationName, forecast);
+                UpdateHourlyUi(forecast);
+
+                StatusText.Text = $"現在地の天気を表示中：{locationName}";
+            }
+            catch (Exception ex) {
+                StatusText.Text = $"現在地取得エラー：{ex.Message}";
+            }
+        }
+
+        private async void CurrentLocationButton_Click(object sender, RoutedEventArgs e) {
+            await LoadWeatherForCurrentLocationAsync();
+        }
+
+
+        private async Task<(double lat, double lon, string displayName, string timezone)> GetCurrentLocationByIpAsync() {
+            var url = "https://ipapi.co/json/";
+
+            HttpResponseMessage resp;
+            try {
+                resp = await httpClient.GetAsync(url);
+            }
+            catch (Exception ex) {
+                // そもそも接続できない場合
+                throw new Exception("現在地APIに接続できませんでした：" + ex.Message);
+            }
+
+            if (!resp.IsSuccessStatusCode) {
+                // 403, 429 などのステータスをそのまま見せる
+                throw new Exception($"現在地APIエラー: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+            }
+
+            var json = await resp.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var data = JsonSerializer.Deserialize<IpLocationResponse>(json, options);
+            if (data == null || string.IsNullOrWhiteSpace(data.city)) {
+                throw new Exception("現在地の解析に失敗しました。");
+            }
+
+            string name = data.city;
+            if (!string.IsNullOrEmpty(data.country_name)) {
+                name += $"（{data.country_name}）";
+            }
+
+            return (data.latitude, data.longitude, name, data.timezone);
+        }
+
+
+
     }
 
     // ==== モデルクラス群 ====
@@ -222,4 +294,14 @@ namespace TenkiApp {
         public string Temperature { get; set; } = "";
         public string Icon { get; set; } = "";
     }
+    public class IpLocationResponse {
+        public string ip { get; set; } = "";
+        public string city { get; set; } = "";
+        public string region { get; set; } = "";
+        public string country_name { get; set; } = "";
+        public double latitude { get; set; }
+        public double longitude { get; set; }
+        public string timezone { get; set; } = "";
+    }
+
 }
