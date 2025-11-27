@@ -5,16 +5,31 @@
         Height="600" Width="1000"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize">
+
+    <!-- ===============================
+         テーマ用リソース（ライト／ダークで中身を差し替える）
+         =============================== -->
     <Window.Resources>
+        <!-- アクセントカラー（ボタンなど） -->
+        <SolidColorBrush x:Key="AccentBrush" Color="#4FC3F7" />
+        <!-- 背景（RootGrid の色） -->
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#FFFFFF" />
+        <!-- カードの背景（右側の白カードなど） -->
+        <SolidColorBrush x:Key="CardBrush" Color="#FDFDFD" />
+        <!-- メイン文字色 -->
+        <SolidColorBrush x:Key="MainTextBrush" Color="#222222" />
+        <!-- サブ文字色 -->
+        <SolidColorBrush x:Key="SubTextBrush" Color="#777777" />
+
         <!-- カード用の影 -->
         <DropShadowEffect x:Key="CardShadow"
                           BlurRadius="18"
                           ShadowDepth="4"
                           Opacity="0.35" />
 
-        <!-- 共通ボタンスタイル（角丸＋ホバー） -->
+        <!-- 共通ボタンスタイル -->
         <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#FF4FC3F7"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Padding" Value="10,4"/>
             <Setter Property="Margin" Value="4"/>
@@ -32,50 +47,32 @@
                                               VerticalAlignment="Center"
                                               Margin="{TemplateBinding Padding}"/>
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#FF29B6F6"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#FF0288D1"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.5"/>
-                                <Setter Property="Cursor" Value="Arrow"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <!-- チップ風ボタン -->
-        <Style x:Key="ChipButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#33FFFFFF"/>
-            <Setter Property="Foreground" Value="White"/>
+        <!-- 小さめの Chip ボタン -->
+        <Style x:Key="ChipButton" TargetType="Button"
+               BasedOn="{StaticResource PrimaryButton}">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Padding" Value="6,2"/>
         </Style>
     </Window.Resources>
 
-    <!-- 背景グラデ＋うっすら円 -->
-    <Grid>
-        <Grid.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#FF1D2671" Offset="0.0"/>
-                <GradientStop Color="#FF0F9BBD" Offset="0.5"/>
-                <GradientStop Color="#FF2E99B0" Offset="1.0"/>
-            </LinearGradientBrush>
-        </Grid.Background>
-
-        <!-- 背景のぼかした円（デザイン用） -->
+    <!-- ===============================
+         本体レイアウト
+         =============================== -->
+    <!-- 背景：テーマブラシ＋うっすら円 -->
+    <Grid x:Name="RootGrid" Background="{DynamicResource BackgroundBrush}">
+        <!-- 背景の半透明円（ライト／ダークどちらでもそれっぽく見えるよう白系の固定色） -->
         <Ellipse Width="280" Height="280"
-                 Fill="#33FFFFFF"
+                 Fill="#22FFFFFF"
                  HorizontalAlignment="Left"
                  VerticalAlignment="Top"
                  Margin="-80,-60,0,0"/>
         <Ellipse Width="340" Height="340"
-                 Fill="#22FFFFFF"
+                 Fill="#11FFFFFF"
                  HorizontalAlignment="Right"
                  VerticalAlignment="Bottom"
                  Margin="0,0,-100,-80"/>
@@ -90,11 +87,10 @@
                 <!-- 右コンテンツ -->
             </Grid.ColumnDefinitions>
 
-
             <!-- ================= 左：場所選択パネル ================= -->
             <Border Grid.Column="0"
-                    Background="#33FFFFFF"
-                    CornerRadius="20"
+                    Background="#1FFFFFFF" 
+                CornerRadius="20"
                     Padding="16"
                     Effect="{StaticResource CardShadow}">
                 <DockPanel LastChildFill="True">
@@ -103,24 +99,28 @@
                         <TextBlock Text="TenkiApp"
                                    FontSize="22"
                                    FontWeight="Bold"
-                                   Foreground="White"/>
+                                   Foreground="{DynamicResource MainTextBrush}"/>
                         <TextBlock Text="日本各地の天気をチェック"
                                    FontSize="12"
-                                   Foreground="#EEFFFFFF"
+                                   Foreground="{DynamicResource SubTextBrush}"
                                    Margin="0,2,0,10"/>
                     </StackPanel>
 
                     <!-- 入力エリア -->
                     <StackPanel DockPanel.Dock="Top">
                         <TextBlock Text="都市名で検索"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource MainTextBrush}"
                                    FontSize="13"
                                    Margin="0,4,0,2"/>
                         <DockPanel>
-                            <TextBox x:Name="CityTextBox" Text="伊勢崎市"
-                                     Height="28" FontSize="13"
-                                     Padding="6,2" Margin="0,0,4,0"/>
-                            <Button Content="検索" Style="{StaticResource PrimaryButton}"
+                            <TextBox x:Name="CityTextBox"
+                                     Text="伊勢崎市"
+                                     Height="28"
+                                     FontSize="13"
+                                     Padding="6,2"
+                                     Margin="0,0,4,0"/>
+                            <Button Content="検索"
+                                    Style="{StaticResource PrimaryButton}"
                                     Click="SearchButton_Click"/>
                             <Button Content="現在地"
                                     Style="{StaticResource ChipButton}"
@@ -129,24 +129,31 @@
                         </DockPanel>
 
                         <TextBlock Text="よく使う場所"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource MainTextBrush}"
                                    FontSize="13"
                                    Margin="0,10,0,2"/>
 
                         <WrapPanel>
-                            <Button Content="東京" Tag="東京" Style="{StaticResource ChipButton}"
+                            <Button Content="東京" Tag="東京"
+                                    Style="{StaticResource ChipButton}"
                                     Click="QuickCity_Click"/>
-                            <Button Content="大阪" Tag="大阪市" Style="{StaticResource ChipButton}"
+                            <Button Content="大阪" Tag="大阪市"
+                                    Style="{StaticResource ChipButton}"
                                     Click="QuickCity_Click"/>
-                            <Button Content="札幌" Tag="札幌市" Style="{StaticResource ChipButton}"
+                            <Button Content="札幌" Tag="札幌市"
+                                    Style="{StaticResource ChipButton}"
                                     Click="QuickCity_Click"/>
-                            <Button Content="福岡" Tag="福岡市" Style="{StaticResource ChipButton}"
+                            <Button Content="福岡" Tag="福岡市"
+                                    Style="{StaticResource ChipButton}"
                                     Click="QuickCity_Click"/>
-                            <Button Content="那覇" Tag="那覇市" Style="{StaticResource ChipButton}"
+                            <Button Content="那覇" Tag="那覇市"
+                                    Style="{StaticResource ChipButton}"
                                     Click="QuickCity_Click"/>
-                            <Button Content="前橋" Tag="前橋市" Style="{StaticResource ChipButton}"
+                            <Button Content="前橋" Tag="前橋市"
+                                    Style="{StaticResource ChipButton}"
                                     Click="QuickCity_Click"/>
-                            <Button Content="伊勢崎" Tag="伊勢崎市" Style="{StaticResource ChipButton}"
+                            <Button Content="伊勢崎" Tag="伊勢崎市"
+                                    Style="{StaticResource ChipButton}"
                                     Click="QuickCity_Click"/>
                         </WrapPanel>
                     </StackPanel>
@@ -154,18 +161,18 @@
                     <!-- 地図＆ステータス -->
                     <StackPanel Margin="0,12,0,0">
                         <Border CornerRadius="16"
-                                Background="#22FFFFFF"
+                                Background="#14FFFFFF"
                                 Padding="8"
                                 Height="180">
                             <Grid>
-                                <!-- 日本地図画像（あれば表示、なければTextで代用） -->
+                                <!-- 日本地図画像 -->
                                 <Image Source="Images/japan_map.png"
                                        Stretch="Uniform"
                                        Opacity="0.9"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
                                 <TextBlock Text="日本地図"
-                                           Foreground="#55FFFFFF"
+                                           Foreground="#66FFFFFF"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            FontSize="16"
@@ -174,7 +181,7 @@
                         </Border>
 
                         <TextBlock x:Name="StatusText"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource MainTextBrush}"
                                    FontSize="11"
                                    Margin="2,8,0,0"
                                    Text="準備完了"/>
@@ -190,31 +197,43 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- ヘッダー（場所＋時刻） -->
+                <!-- ヘッダー（場所＋時刻＋テーマボタン） -->
                 <DockPanel Grid.Row="0">
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <!-- 左：場所 -->
+                    <StackPanel Orientation="Horizontal"
+                                DockPanel.Dock="Left">
                         <TextBlock x:Name="LocationText"
                                    Text="--"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="White"/>
+                                   Foreground="{DynamicResource MainTextBrush}"/>
                         <TextBlock x:Name="TimezoneText"
                                    Text=""
                                    FontSize="12"
-                                   Foreground="#EEFFFFFF"
+                                   Foreground="{DynamicResource SubTextBrush}"
                                    Margin="8,6,0,0"/>
                     </StackPanel>
-                    <TextBlock x:Name="TimeText"
-                               DockPanel.Dock="Right"
-                               FontSize="13"
-                               Foreground="#EEFFFFFF"
-                               HorizontalAlignment="Right"/>
+
+                    <!-- 右：時刻＋テーマボタン -->
+                    <StackPanel Orientation="Horizontal"
+                                DockPanel.Dock="Right"
+                                HorizontalAlignment="Right">
+                        <TextBlock x:Name="TimeText"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource SubTextBrush}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,0"/>
+                        <Button x:Name="ThemeButton"
+                                Content="ダークテーマ"
+                                Style="{StaticResource PrimaryButton}"
+                                Click="ThemeButton_Click"/>
+                    </StackPanel>
                 </DockPanel>
 
                 <!-- 中央：現在の天気カード -->
                 <Border Grid.Row="1"
                         Margin="0,16,0,10"
-                        Background="#FDFDFD"
+                        Background="{DynamicResource CardBrush}"
                         CornerRadius="22"
                         Padding="22"
                         Effect="{StaticResource CardShadow}">
@@ -230,24 +249,25 @@
                                        Text="--"
                                        FontSize="18"
                                        FontWeight="SemiBold"
-                                       Foreground="#444"/>
+                                       Foreground="{DynamicResource MainTextBrush}"/>
                             <TextBlock x:Name="CurrentTempText"
                                        Text="-- ℃"
                                        FontSize="40"
                                        FontWeight="Bold"
-                                       Foreground="#333"
+                                       Foreground="{DynamicResource MainTextBrush}"
                                        Margin="0,4,0,0"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0,10,0,0">
                                 <TextBlock Text="観測時刻: "
                                            FontSize="12"
-                                           Foreground="#777"/>
+                                           Foreground="{DynamicResource SubTextBrush}"/>
                                 <TextBlock x:Name="CurrentTimeDetailText"
                                            FontSize="12"
-                                           Foreground="#555"/>
+                                           Foreground="{DynamicResource MainTextBrush}"/>
                             </StackPanel>
                             <TextBlock x:Name="CurrentCodeText"
                                        FontSize="11"
-                                       Foreground="#999"
+                                       Foreground="{DynamicResource SubTextBrush}"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
 
@@ -274,9 +294,9 @@
                     </Grid>
                 </Border>
 
-                <!-- 下：時間ごとの予報 -->
+                <!-- 下：時間ごとの予報カード -->
                 <Border Grid.Row="2"
-                        Background="#33FFFFFF"
+                        Background="#0FFFFFFF"
                         CornerRadius="18"
                         Padding="12"
                         Margin="0,0,0,4"
@@ -285,7 +305,7 @@
                         <TextBlock Text="今日の時間別予報"
                                    FontSize="13"
                                    FontWeight="SemiBold"
-                                   Foreground="#333"
+                                   Foreground="{DynamicResource MainTextBrush}"
                                    Margin="4,0,0,6"/>
                         <ScrollViewer HorizontalScrollBarVisibility="Auto"
                                       VerticalScrollBarVisibility="Disabled">
@@ -299,12 +319,12 @@
                                     <DataTemplate>
                                         <Border Margin="4"
                                                 Padding="10"
-                                                Background="#FDFDFD"
+                                                Background="{DynamicResource CardBrush}"
                                                 CornerRadius="14">
                                             <StackPanel>
                                                 <TextBlock Text="{Binding Time}"
                                                            FontSize="12"
-                                                           Foreground="#555"
+                                                           Foreground="{DynamicResource SubTextBrush}"
                                                            HorizontalAlignment="Center"/>
                                                 <TextBlock Text="{Binding Icon}"
                                                            FontSize="22"
@@ -313,7 +333,7 @@
                                                 <TextBlock Text="{Binding Temperature}"
                                                            FontSize="13"
                                                            FontWeight="SemiBold"
-                                                           Foreground="#333"
+                                                           Foreground="{DynamicResource MainTextBrush}"
                                                            HorizontalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>

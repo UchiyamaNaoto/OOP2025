@@ -5,15 +5,23 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace TenkiApp {
     public partial class MainWindow : Window {
         private static readonly HttpClient httpClient = new HttpClient();
 
+        // テーマ状態（false = ライト, true = ダーク）
+        private bool _isDark = false;
+
         public MainWindow() {
             InitializeComponent();
             StartClock();
+
+            // 起動時にライトテーマ適用
+            ApplyLightTheme();
 
             // User-Agent を設定（現在地API対策）
             if (!httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("TenkiApp/1.0")) {
@@ -24,8 +32,65 @@ namespace TenkiApp {
             _ = LoadWeatherForCurrentLocationAsync();
         }
 
+        // ==============================
+        // テーマ切り替え
+        // ==============================
 
-        // ==== 時計表示 ====
+        private void ThemeButton_Click(object sender, RoutedEventArgs e) {
+            _isDark = !_isDark;
+
+            if (_isDark) {
+                ApplyDarkTheme();
+                ThemeButton.Content = "ライトテーマ";
+            } else {
+                ApplyLightTheme();
+                ThemeButton.Content = "ダークテーマ";
+            }
+        }
+
+        /// <summary>
+        /// テーマ用ブラシを一括設定
+        /// （XAML の AccentBrush / BackgroundBrush / CardBrush / MainTextBrush / SubTextBrush に対応）
+        /// </summary>
+        private void SetTheme(
+            string accentColor,
+            string backgroundColor,
+            string cardColor,
+            string mainTextColor,
+            string subTextColor) {
+
+            Resources["AccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(accentColor));
+            Resources["BackgroundBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(backgroundColor));
+            Resources["CardBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(cardColor));
+            Resources["MainTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(mainTextColor));
+            Resources["SubTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(subTextColor));
+        }
+
+        // ライトテーマ
+        private void ApplyLightTheme() {
+            SetTheme(
+                accentColor: "#4FC3F7",   // 青
+                backgroundColor: "#FFFFFF",   // 白
+                cardColor: "#FDFDFD",
+                mainTextColor: "#222222",
+                subTextColor: "#777777"
+            );
+        }
+
+        // ダークテーマ
+        private void ApplyDarkTheme() {
+            SetTheme(
+                accentColor: "#BB86FC",   // 紫
+                backgroundColor: "#121212",   // ほぼ黒
+                cardColor: "#1E1E1E",
+                mainTextColor: "#EEEEEE",
+                subTextColor: "#BBBBBB"
+            );
+        }
+
+        // ==============================
+        // 時計表示
+        // ==============================
         private void StartClock() {
             var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             timer.Tick += (_, __) => {
@@ -34,7 +99,9 @@ namespace TenkiApp {
             timer.Start();
         }
 
-        // ==== UIイベント ====
+        // ==============================
+        // UIイベント
+        // ==============================
         private async void SearchButton_Click(object sender, RoutedEventArgs e) {
             await LoadWeatherByCityAsync(CityTextBox.Text);
         }
@@ -46,7 +113,13 @@ namespace TenkiApp {
             }
         }
 
-        // ==== メイン処理：都市名から天気取得 ====
+        private async void CurrentLocationButton_Click(object sender, RoutedEventArgs e) {
+            await LoadWeatherForCurrentLocationAsync();
+        }
+
+        // ==============================
+        // メイン処理：都市名から天気取得
+        // ==============================
         private async Task LoadWeatherByCityAsync(string cityName) {
             if (string.IsNullOrWhiteSpace(cityName)) {
                 StatusText.Text = "都市名を入力してください。";
@@ -70,7 +143,65 @@ namespace TenkiApp {
             }
         }
 
-        // ==== UI更新（現在の天気） ====
+        // ==============================
+        // 現在地から天気取得
+        // ==============================
+        private async Task LoadWeatherForCurrentLocationAsync() {
+            try {
+                StatusText.Text = "現在地から天気を取得中...";
+
+                var (lat, lon, locationName, timezone) = await GetCurrentLocationByIpAsync();
+
+                CityTextBox.Text = locationName;
+
+                var forecast = await GetForecastAsync(lat, lon, timezone);
+
+                UpdateCurrentWeatherUi(locationName, forecast);
+                UpdateHourlyUi(forecast);
+
+                StatusText.Text = $"現在地の天気を表示中：{locationName}";
+            }
+            catch (Exception ex) {
+                StatusText.Text = $"現在地取得エラー：{ex.Message}";
+            }
+        }
+
+        private async Task<(double lat, double lon, string displayName, string timezone)> GetCurrentLocationByIpAsync() {
+            var url = "https://ipapi.co/json/";
+
+            HttpResponseMessage resp;
+            try {
+                resp = await httpClient.GetAsync(url);
+            }
+            catch (Exception ex) {
+                throw new Exception("現在地APIに接続できませんでした：" + ex.Message);
+            }
+
+            if (!resp.IsSuccessStatusCode) {
+                throw new Exception($"現在地APIエラー: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+            }
+
+            var json = await resp.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var data = JsonSerializer.Deserialize<IpLocationResponse>(json, options);
+            if (data == null || string.IsNullOrWhiteSpace(data.city)) {
+                throw new Exception("現在地の解析に失敗しました。");
+            }
+
+            string name = data.city;
+            if (!string.IsNullOrEmpty(data.country_name)) {
+                name += $"（{data.country_name}）";
+            }
+
+            return (data.latitude, data.longitude, name, data.timezone);
+        }
+
+        // ==============================
+        // UI更新（現在の天気）
+        // ==============================
         private void UpdateCurrentWeatherUi(string locationName, ForecastResponse forecast) {
             if (forecast.current == null) {
                 CurrentConditionText.Text = "現在の天気データ無し";
@@ -92,7 +223,9 @@ namespace TenkiApp {
             SummaryText.Text = "Open-Meteo 現在値";
         }
 
-        // ==== UI更新（時間別） ====
+        // ==============================
+        // UI更新（時間別）
+        // ==============================
         private void UpdateHourlyUi(ForecastResponse forecast) {
             if (forecast.hourly == null ||
                 forecast.hourly.time == null ||
@@ -120,7 +253,9 @@ namespace TenkiApp {
             HourlyList.ItemsSource = items;
         }
 
-        // ==== Open-Meteo Geocoding API ====
+        // ==============================
+        // Open-Meteo Geocoding API
+        // ==============================
         private async Task<(double lat, double lon, string displayName, string timezone)> GeocodeAsync(string cityName) {
             var url =
                 "https://geocoding-api.open-meteo.com/v1/search" +
@@ -147,7 +282,9 @@ namespace TenkiApp {
             return (r.latitude, r.longitude, name, r.timezone);
         }
 
-        // ==== Open-Meteo Forecast API ====
+        // ==============================
+        // Open-Meteo Forecast API
+        // ==============================
         private async Task<ForecastResponse> GetForecastAsync(double lat, double lon, string timezone) {
             var url =
                 "https://api.open-meteo.com/v1/forecast" +
@@ -170,7 +307,9 @@ namespace TenkiApp {
             return data;
         }
 
-        // ==== weather_code → アイコン＆日本語 ====
+        // ==============================
+        // weather_code → アイコン＆日本語
+        // ==============================
         private (string Icon, string TextJa) WeatherCodeToIconAndText(int code) {
             return code switch {
                 0 => ("☀", "快晴"),
@@ -189,72 +328,6 @@ namespace TenkiApp {
                 _ => ("❓", $"不明（{code}）")
             };
         }
-        private async Task LoadWeatherForCurrentLocationAsync() {
-            try {
-                StatusText.Text = "現在地から天気を取得中...";
-
-                // IP から現在地（緯度・経度・都市名・タイムゾーン）を取得
-                var (lat, lon, locationName, timezone) = await GetCurrentLocationByIpAsync();
-
-                // テキストボックスにも表示（ユーザーにどこの天気か分かるように）
-                CityTextBox.Text = locationName;
-
-                // Open-Meteo から天気取得
-                var forecast = await GetForecastAsync(lat, lon, timezone);
-
-                // 既存のUI更新メソッドを再利用
-                UpdateCurrentWeatherUi(locationName, forecast);
-                UpdateHourlyUi(forecast);
-
-                StatusText.Text = $"現在地の天気を表示中：{locationName}";
-            }
-            catch (Exception ex) {
-                StatusText.Text = $"現在地取得エラー：{ex.Message}";
-            }
-        }
-
-        private async void CurrentLocationButton_Click(object sender, RoutedEventArgs e) {
-            await LoadWeatherForCurrentLocationAsync();
-        }
-
-
-        private async Task<(double lat, double lon, string displayName, string timezone)> GetCurrentLocationByIpAsync() {
-            var url = "https://ipapi.co/json/";
-
-            HttpResponseMessage resp;
-            try {
-                resp = await httpClient.GetAsync(url);
-            }
-            catch (Exception ex) {
-                // そもそも接続できない場合
-                throw new Exception("現在地APIに接続できませんでした：" + ex.Message);
-            }
-
-            if (!resp.IsSuccessStatusCode) {
-                // 403, 429 などのステータスをそのまま見せる
-                throw new Exception($"現在地APIエラー: {(int)resp.StatusCode} {resp.ReasonPhrase}");
-            }
-
-            var json = await resp.Content.ReadAsStringAsync();
-            var options = new JsonSerializerOptions {
-                PropertyNameCaseInsensitive = true
-            };
-
-            var data = JsonSerializer.Deserialize<IpLocationResponse>(json, options);
-            if (data == null || string.IsNullOrWhiteSpace(data.city)) {
-                throw new Exception("現在地の解析に失敗しました。");
-            }
-
-            string name = data.city;
-            if (!string.IsNullOrEmpty(data.country_name)) {
-                name += $"（{data.country_name}）";
-            }
-
-            return (data.latitude, data.longitude, name, data.timezone);
-        }
-
-
-
     }
 
     // ==== モデルクラス群 ====
@@ -294,6 +367,7 @@ namespace TenkiApp {
         public string Temperature { get; set; } = "";
         public string Icon { get; set; } = "";
     }
+
     public class IpLocationResponse {
         public string ip { get; set; } = "";
         public string city { get; set; } = "";
@@ -303,5 +377,4 @@ namespace TenkiApp {
         public double longitude { get; set; }
         public string timezone { get; set; } = "";
     }
-
 }
